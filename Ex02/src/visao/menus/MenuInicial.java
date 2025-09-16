@@ -1,9 +1,13 @@
 package visao.menus;
 
+import classes.Bibliotecaria;
+import classes.Usuario;
+import util.ManipuladorArquivos;
+import visao.telas.TelaBibliotecaria;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import util.ManipuladorArquivos;
 
 public class MenuInicial extends JFrame {
 
@@ -27,7 +31,11 @@ public class MenuInicial extends JFrame {
             dispose();
 
             if ("Bibliotecária".equals(perfilSelecionado)) {
-//                new MenuBibliotecaria();
+                // Seleciona a bibliotecária
+                Bibliotecaria b = TelaBibliotecaria.exibir();
+                if (b != null) {
+                    new MenuBibliotecaria(b);
+                }
             } else {
                 selecionarUsuario(perfilSelecionado);
             }
@@ -36,42 +44,31 @@ public class MenuInicial extends JFrame {
         painel.add(lbl);
         painel.add(comboPerfil);
         painel.add(btnEntrar);
-        painel.add(new JButton("Sair") {{
-            addActionListener(e -> dispose());
-        }});
+
+        JButton btnSair = new JButton("Sair");
+        btnSair.addActionListener(e -> dispose());
+        painel.add(btnSair);
 
         add(painel);
         setVisible(true);
     }
 
     private void selecionarUsuario(String perfil) {
-        String arquivo = switch (perfil) {
-            case "Bibliotecária" -> "Bibliotecaria";
-            case "Usuário" -> "Usuario";
-            default -> null;
-        };
-
-        if (arquivo == null) {
-            JOptionPane.showMessageDialog(null, "Perfil inválido.");
+        List<Usuario> usuarios = ManipuladorArquivos.lerUsuarios();
+        if (usuarios.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhum usuário encontrado.");
             new MenuInicial();
             return;
         }
 
-        List<String[]> registros = ManipuladorArquivos.ler(arquivo, getCamposEsperados(arquivo));
-        if (registros.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum registro encontrado para " + perfil + ".");
-            new MenuInicial();
-            return;
-        }
-
-        String[] opcoes = registros.stream()
-                .map(r -> r[1] + " (ID: " + r[0] + ")")
+        String[] opcoes = usuarios.stream()
+                .map(u -> u.getNome() + " (ID: " + u.getIdUsuario() + ")")
                 .toArray(String[]::new);
 
         String escolha = (String) JOptionPane.showInputDialog(
                 null,
-                "Selecione o(a) " + perfil + ":",
-                "Login",
+                "Selecione o(a) usuário(a):",
+                "Login Usuário",
                 JOptionPane.PLAIN_MESSAGE,
                 null,
                 opcoes,
@@ -83,19 +80,19 @@ public class MenuInicial extends JFrame {
             return;
         }
 
-        int id = Integer.parseInt(escolha.split("ID: ")[1].replace(")", ""));
-        switch (perfil) {
-//            case "Bibliotecária" -> new MenuBibliotecaria();
-//            case "Usuário" -> new MenuUsuario(id);
+        int idEscolhido = Integer.parseInt(escolha.split("ID: ")[1].replace(")", ""));
+        Usuario u = usuarios.stream()
+                .filter(user -> user.getIdUsuario() == idEscolhido)
+                .findFirst()
+                .orElse(null);
+
+        if (u != null) {
+            // Aqui você poderia abrir o MenuUsuario, ex: new MenuUsuario(u);
+            JOptionPane.showMessageDialog(null, "Usuário " + u.getNome() + " logado!");
         }
     }
 
-    private int getCamposEsperados(String nomeClasse) {
-        return switch (nomeClasse) {
-            case "Bibliotecária" -> 3;
-            case "Usuário" -> 3;
-            default -> 0;
-        };
+    public static void main(String[] args) {
+        new MenuInicial();
     }
 }
-
