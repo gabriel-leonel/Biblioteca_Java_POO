@@ -31,13 +31,47 @@ public class MenuInicial extends JFrame {
             dispose();
 
             if ("Bibliotecária".equals(perfilSelecionado)) {
-                // Seleciona a bibliotecária
                 Bibliotecaria b = TelaBibliotecaria.exibir();
                 if (b != null) {
                     new MenuBibliotecaria(b);
                 }
-            } else {
-                selecionarUsuario(perfilSelecionado);
+            } else if ("Usuário".equals(perfilSelecionado)) {
+                // Seleção do usuário
+                List<Usuario> usuarios = ManipuladorArquivos.lerUsuarios();
+                if (usuarios.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Nenhum usuário encontrado.");
+                    new MenuInicial();
+                    return;
+                }
+
+                String[] opcoes = usuarios.stream()
+                        .map(u -> u.getNome() + " (ID: " + u.getIdUsuario() + ")")
+                        .toArray(String[]::new);
+
+                String escolha = (String) JOptionPane.showInputDialog(
+                        null,
+                        "Selecione o(a) usuário(a):",
+                        "Login Usuário",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        opcoes,
+                        opcoes[0]
+                );
+
+                if (escolha == null) {
+                    new MenuInicial();
+                    return;
+                }
+
+                int idEscolhido = Integer.parseInt(escolha.split("ID: ")[1].replace(")", ""));
+                Usuario u = usuarios.stream()
+                        .filter(user -> user.getIdUsuario() == idEscolhido)
+                        .findFirst()
+                        .orElse(null);
+
+                if (u != null) {
+                    new MenuUsuario(u); // abre a tela do usuário
+                }
             }
         });
 
@@ -51,45 +85,6 @@ public class MenuInicial extends JFrame {
 
         add(painel);
         setVisible(true);
-    }
-
-    private void selecionarUsuario(String perfil) {
-        List<Usuario> usuarios = ManipuladorArquivos.lerUsuarios();
-        if (usuarios.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Nenhum usuário encontrado.");
-            new MenuInicial();
-            return;
-        }
-
-        String[] opcoes = usuarios.stream()
-                .map(u -> u.getNome() + " (ID: " + u.getIdUsuario() + ")")
-                .toArray(String[]::new);
-
-        String escolha = (String) JOptionPane.showInputDialog(
-                null,
-                "Selecione o(a) usuário(a):",
-                "Login Usuário",
-                JOptionPane.PLAIN_MESSAGE,
-                null,
-                opcoes,
-                opcoes[0]
-        );
-
-        if (escolha == null) {
-            new MenuInicial();
-            return;
-        }
-
-        int idEscolhido = Integer.parseInt(escolha.split("ID: ")[1].replace(")", ""));
-        Usuario u = usuarios.stream()
-                .filter(user -> user.getIdUsuario() == idEscolhido)
-                .findFirst()
-                .orElse(null);
-
-        if (u != null) {
-            // Aqui você poderia abrir o MenuUsuario, ex: new MenuUsuario(u);
-            JOptionPane.showMessageDialog(null, "Usuário " + u.getNome() + " logado!");
-        }
     }
 
     public static void main(String[] args) {
