@@ -83,8 +83,8 @@ public class MenuUsuario extends JFrame {
 
                     // Cria empréstimo
                     int idEmprestimo = ManipuladorArquivos.proximoId("Emprestimo");
-                    Emprestimo e1 = new Emprestimo(idEmprestimo, new Date(), null);
-                    ManipuladorArquivos.salvarObjeto("Emprestimo", e1, 3);
+                    Emprestimo e1 = new Emprestimo(idEmprestimo, new Date(), null, usuario.getIdUsuario(), idLivro);
+                    ManipuladorArquivos.salvarObjeto("Emprestimo", e1, 5);
 
                     JOptionPane.showMessageDialog(this, "Empréstimo realizado com sucesso!");
                 }
@@ -94,14 +94,19 @@ public class MenuUsuario extends JFrame {
         // ---------------- Cancelar empréstimo ----------------
         btnCancelaEmprestimos.addActionListener(e -> {
             List<Emprestimo> emprestimos = ManipuladorArquivos.lerEmprestimos();
-            // Aqui você poderia filtrar apenas empréstimos do usuário (se tiver vínculo)
-            if (emprestimos.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Nenhum empréstimo ativo.");
+
+            // filtra apenas os empréstimos do usuário logado
+            List<Emprestimo> meusEmprestimos = emprestimos.stream()
+                    .filter(em -> em.getIdUsuario() == usuario.getIdUsuario())
+                    .toList();
+
+            if (meusEmprestimos.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhum empréstimo ativo para este usuário.");
                 return;
             }
 
-            String[] opcoes = emprestimos.stream()
-                    .map(em -> "Empréstimo ID: " + em.getIdEmprestimo())
+            String[] opcoes = meusEmprestimos.stream()
+                    .map(em -> "Empréstimo ID: " + em.getIdEmprestimo() + " - Livro ID: " + em.getIdLivro())
                     .toArray(String[]::new);
 
             String escolha = (String) JOptionPane.showInputDialog(
@@ -115,14 +120,35 @@ public class MenuUsuario extends JFrame {
             );
 
             if (escolha != null) {
-                int idEmprestimo = Integer.parseInt(escolha.split("ID: ")[1]);
+                int idEmprestimo = Integer.parseInt(escolha.split("ID: ")[1].split(" - ")[0].trim());
+                int idLivro = Integer.parseInt(escolha.split("Livro ID: ")[1].trim());
+
+                // remove o empréstimo
                 emprestimos.removeIf(em -> em.getIdEmprestimo() == idEmprestimo);
+
+                // salva novamente todos os empréstimos
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
                 ManipuladorArquivos.salvarLista("Emprestimo", emprestimos.stream()
-                        .map(em -> new String[]{String.valueOf(em.getIdEmprestimo()),
-                                new SimpleDateFormat("dd/MM/yyyy").format(em.getDataEmprestimo()),
-                                em.getDataDevolucao() != null ? new SimpleDateFormat("dd/MM/yyyy").format(em.getDataDevolucao()) : ""})
+                        .map(em -> new String[]{
+                                String.valueOf(em.getIdEmprestimo()),
+                                em.getDataEmprestimo() != null ? sdf.format(em.getDataEmprestimo()) : "",
+                                em.getDataDevolucao() != null ? sdf.format(em.getDataDevolucao()) : "",
+                                String.valueOf(em.getIdUsuario()),
+                                String.valueOf(em.getIdLivro())
+                        })
                         .toList()
                 );
+
+                // Atualiza o livro para "Disponível"
+                List<String[]> livros = ManipuladorArquivos.ler("Livro", 4);
+                for (String[] campos : livros) {
+                    if (Integer.parseInt(campos[0]) == idLivro) {
+                        campos[3] = "Disponível"; // altera status
+                        break;
+                    }
+                }
+                ManipuladorArquivos.salvarLista("Livro", livros);
+
                 JOptionPane.showMessageDialog(this, "Empréstimo cancelado com sucesso!");
             }
         });

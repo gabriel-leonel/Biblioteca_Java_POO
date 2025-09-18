@@ -7,11 +7,15 @@ public class Emprestimo {
     private int idEmprestimo;
     private Date dataEmprestimo;
     private Date dataDevolucao;
+    private int idUsuario;
+    private int idLivro;
 
-    public Emprestimo(int idEmprestimo, Date dataEmprestimo, Date dataDevolucao) {
-        this.idEmprestimo = idEmprestimo;
-        this.dataEmprestimo = dataEmprestimo;
-        this.dataDevolucao = dataDevolucao;
+    public Emprestimo(int id, Date dEmp, Date dDev, int idUsuario, int idLivro) {
+        this.idEmprestimo = id;
+        this.dataEmprestimo = dEmp;
+        this.dataDevolucao = dDev;
+        this.idUsuario = idUsuario;
+        this.idLivro = idLivro;
     }
 
     public int getIdEmprestimo() {
@@ -38,6 +42,14 @@ public class Emprestimo {
         this.dataDevolucao = dataDevolucao;
     }
 
+    public int getIdUsuario(){ return idUsuario; }
+
+    public void setIdUsuario(int idUsuario){ this.idUsuario = idUsuario; }
+
+    public int getIdLivro(){ return idLivro; }
+
+    public void setIdLivro(int idLivro){ this.idLivro = idLivro;}
+
     public void registrarEmprestimo(){}
 
     public void registrarDevolucao(){}
@@ -49,8 +61,8 @@ public class Emprestimo {
 
     public String toCSV() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        return idEmprestimo + ";" +
-                (dataEmprestimo != null ? sdf.format(dataEmprestimo) : "") + ";" +
-                (dataDevolucao != null ? sdf.format(dataDevolucao) : "");
+        String de = dataDevolucao != null ? sdf.format(dataDevolucao) : "";
+        return idEmprestimo + ";" + (dataEmprestimo != null ? sdf.format(dataEmprestimo) : "") + ";" + de
+                + ";" + idUsuario + ";" + idLivro;
     }
 }
