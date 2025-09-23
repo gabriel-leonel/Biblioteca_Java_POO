@@ -49,16 +49,17 @@ public class MenuBibliotecaria extends JFrame {
         JScrollPane scrollUsuarios = new JScrollPane(listaUsuarios);
 
         JPanel form = new JPanel(new GridLayout(2, 2, 5, 5));
+
+        JPanel botoes = new JPanel(new FlowLayout());
+        JButton btnAdicionar = new JButton("Adicionar");
+        JButton btnRemover = new JButton("Remover");
+
         JTextField txtNome = new JTextField();
         JTextField txtEmail = new JTextField();
         form.add(new JLabel("Nome:"));
         form.add(txtNome);
         form.add(new JLabel("Email:"));
         form.add(txtEmail);
-
-        JPanel botoes = new JPanel(new FlowLayout());
-        JButton btnAdicionar = new JButton("Adicionar");
-        JButton btnRemover = new JButton("Remover");
 
         // Adicionar usuário
         btnAdicionar.addActionListener(e -> {

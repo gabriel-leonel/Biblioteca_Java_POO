@@ -26,7 +26,7 @@ public class MenuUsuario extends JFrame {
         painel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JButton btnAtualizar = new JButton("Atualizar Contato");
-        JButton btnEmprestimos = new JButton("Emprestimos");
+        JButton btnEmprestimos = new JButton("Emprestar Livro");
         JButton btnCancelaEmprestimos = new JButton("Cancelar Empréstimo");
         JButton btnSair = new JButton("Sair");
 
@@ -78,12 +78,13 @@ public class MenuUsuario extends JFrame {
                         .orElse(null);
 
                 if (livroSelecionado != null) {
+                    // marca como emprestado
                     livroSelecionado.setStatusLivro("Emprestado");
                     ManipuladorArquivos.atualizarObjeto("Livro", livroSelecionado.getIdLivro(), livroSelecionado, 4);
 
-                    // Cria empréstimo
+                    // cria empréstimo
                     int idEmprestimo = ManipuladorArquivos.proximoId("Emprestimo");
-                    Emprestimo e1 = new Emprestimo(idEmprestimo, new Date(), null, usuario.getIdUsuario(), idLivro);
+                    Emprestimo e1 = new Emprestimo(idEmprestimo, new Date(), null, usuario, livroSelecionado);
                     ManipuladorArquivos.salvarObjeto("Emprestimo", e1, 5);
 
                     JOptionPane.showMessageDialog(this, "Empréstimo realizado com sucesso!");
@@ -97,7 +98,7 @@ public class MenuUsuario extends JFrame {
 
             // filtra apenas os empréstimos do usuário logado
             List<Emprestimo> meusEmprestimos = emprestimos.stream()
-                    .filter(em -> em.getIdUsuario() == usuario.getIdUsuario())
+                    .filter(em -> em.getUsuario() != null && em.getUsuario().getIdUsuario() == usuario.getIdUsuario())
                     .toList();
 
             if (meusEmprestimos.isEmpty()) {
@@ -106,7 +107,8 @@ public class MenuUsuario extends JFrame {
             }
 
             String[] opcoes = meusEmprestimos.stream()
-                    .map(em -> "Empréstimo ID: " + em.getIdEmprestimo() + " - Livro ID: " + em.getIdLivro())
+                    .map(em -> "Empréstimo ID: " + em.getIdEmprestimo() +
+                            " - Livro: " + (em.getLivro() != null ? em.getLivro().getTituloLivro() : "Desconhecido"))
                     .toArray(String[]::new);
 
             String escolha = (String) JOptionPane.showInputDialog(
@@ -121,35 +123,44 @@ public class MenuUsuario extends JFrame {
 
             if (escolha != null) {
                 int idEmprestimo = Integer.parseInt(escolha.split("ID: ")[1].split(" - ")[0].trim());
-                int idLivro = Integer.parseInt(escolha.split("Livro ID: ")[1].trim());
 
-                // remove o empréstimo
-                emprestimos.removeIf(em -> em.getIdEmprestimo() == idEmprestimo);
+                // encontra o empréstimo escolhido
+                Emprestimo emprestimoEscolhido = meusEmprestimos.stream()
+                        .filter(em -> em.getIdEmprestimo() == idEmprestimo)
+                        .findFirst()
+                        .orElse(null);
 
-                // salva novamente todos os empréstimos
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                ManipuladorArquivos.salvarLista("Emprestimo", emprestimos.stream()
-                        .map(em -> new String[]{
-                                String.valueOf(em.getIdEmprestimo()),
-                                em.getDataEmprestimo() != null ? sdf.format(em.getDataEmprestimo()) : "",
-                                em.getDataDevolucao() != null ? sdf.format(em.getDataDevolucao()) : "",
-                                String.valueOf(em.getIdUsuario()),
-                                String.valueOf(em.getIdLivro())
-                        })
-                        .toList()
-                );
+                if (emprestimoEscolhido != null) {
+                    int idLivro = emprestimoEscolhido.getLivro().getIdLivro();
 
-                // Atualiza o livro para "Disponível"
-                List<String[]> livros = ManipuladorArquivos.ler("Livro", 4);
-                for (String[] campos : livros) {
-                    if (Integer.parseInt(campos[0]) == idLivro) {
-                        campos[3] = "Disponível"; // altera status
-                        break;
+                    // remove o empréstimo
+                    emprestimos.removeIf(em -> em.getIdEmprestimo() == idEmprestimo);
+
+                    // salva novamente todos os empréstimos
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    ManipuladorArquivos.salvarLista("Emprestimo", emprestimos.stream()
+                            .map(em -> new String[]{
+                                    String.valueOf(em.getIdEmprestimo()),
+                                    em.getDataEmprestimo() != null ? sdf.format(em.getDataEmprestimo()) : "",
+                                    em.getDataDevolucao() != null ? sdf.format(em.getDataDevolucao()) : "",
+                                    String.valueOf(em.getUsuario().getIdUsuario()),
+                                    String.valueOf(em.getLivro().getIdLivro())
+                            })
+                            .toList()
+                    );
+
+                    // Atualiza o livro para "Disponível"
+                    List<String[]> livros = ManipuladorArquivos.ler("Livro", 4);
+                    for (String[] campos : livros) {
+                        if (Integer.parseInt(campos[0]) == idLivro) {
+                            campos[3] = "Disponível"; // altera status
+                            break;
+                        }
                     }
-                }
-                ManipuladorArquivos.salvarLista("Livro", livros);
+                    ManipuladorArquivos.salvarLista("Livro", livros);
 
-                JOptionPane.showMessageDialog(this, "Empréstimo cancelado com sucesso!");
+                    JOptionPane.showMessageDialog(this, "Empréstimo cancelado com sucesso!");
+                }
             }
         });
 

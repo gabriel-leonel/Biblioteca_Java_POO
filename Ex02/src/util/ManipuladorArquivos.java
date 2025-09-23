@@ -168,12 +168,15 @@ public class ManipuladorArquivos {
         List<Emprestimo> lista = new ArrayList<>();
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
+        List<Usuario> usuarios = lerUsuarios();
+        List<Livro> livros = lerLivros();
+
         for (String[] campos : ler("Emprestimo", 5)) {
             try {
                 int id = Integer.parseInt(campos[0]);
 
                 Date dataEmprestimo = null;
-                Date dataDevolucao  = null;
+                Date dataDevolucao = null;
 
                 if (campos[1] != null && !campos[1].isBlank()) {
                     dataEmprestimo = sdf.parse(campos[1]);
@@ -184,15 +187,26 @@ public class ManipuladorArquivos {
                 }
 
                 int idUsuario = Integer.parseInt(campos[3]);
-                int idLivro   = Integer.parseInt(campos[4]);
+                int idLivro = Integer.parseInt(campos[4]);
 
-                lista.add(new Emprestimo(id, dataEmprestimo, dataDevolucao, idUsuario, idLivro));
+                Usuario usuario = usuarios.stream()
+                        .filter(u -> u.getIdUsuario() == idUsuario)
+                        .findFirst()
+                        .orElse(null);
+
+                Livro livro = livros.stream()
+                        .filter(l -> l.getIdLivro() == idLivro)
+                        .findFirst()
+                        .orElse(null);
+
+                lista.add(new Emprestimo(id, dataEmprestimo, dataDevolucao, usuario, livro));
             } catch (Exception e) {
                 System.err.println("Erro ao ler empréstimo: " + Arrays.toString(campos));
             }
         }
         return lista;
     }
+
 
 
     public static List<Reserva> lerReservas() {

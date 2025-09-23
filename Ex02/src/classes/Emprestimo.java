@@ -7,15 +7,15 @@ public class Emprestimo {
     private int idEmprestimo;
     private Date dataEmprestimo;
     private Date dataDevolucao;
-    private int idUsuario;
-    private int idLivro;
+    private Usuario usuario;
+    private Livro livro;
 
-    public Emprestimo(int id, Date dEmp, Date dDev, int idUsuario, int idLivro) {
+    public Emprestimo(int id, Date dEmp, Date dDev, Usuario usuario, Livro livro) {
         this.idEmprestimo = id;
         this.dataEmprestimo = dEmp;
         this.dataDevolucao = dDev;
-        this.idUsuario = idUsuario;
-        this.idLivro = idLivro;
+        this.usuario = usuario;
+        this.livro = livro;
     }
 
     public int getIdEmprestimo() {
@@ -42,27 +42,44 @@ public class Emprestimo {
         this.dataDevolucao = dataDevolucao;
     }
 
-    public int getIdUsuario(){ return idUsuario; }
+    public Usuario getUsuario() {
+        return usuario;
+    }
 
-    public void setIdUsuario(int idUsuario){ this.idUsuario = idUsuario; }
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
 
-    public int getIdLivro(){ return idLivro; }
+    public Livro getLivro() {
+        return livro;
+    }
 
-    public void setIdLivro(int idLivro){ this.idLivro = idLivro;}
+    public void setLivro(Livro livro) {
+        this.livro = livro;
+    }
 
-    public void registrarEmprestimo(){}
+    public void registrarEmprestimo() {}
 
-    public void registrarDevolucao(){}
+    public void registrarDevolucao() {}
 
     @Override
     public String toString() {
-        return "Emprestimo \nidEmprestimo= " + idEmprestimo + "\ndataEmprestimo= " + dataEmprestimo + "\ndataDevolucao= " + dataDevolucao + "\n";
+        return "Emprestimo \n" +
+                "idEmprestimo= " + idEmprestimo +
+                "\ndataEmprestimo= " + dataEmprestimo +
+                "\ndataDevolucao= " + dataDevolucao +
+                "\nusuario= " + (usuario != null ? usuario.getNome() + " (ID:" + usuario.getIdUsuario() + ")" : "null") +
+                "\nlivro= " + (livro != null ? livro.getTituloLivro() + " (ID:" + livro.getIdLivro() + ")" : "null") +
+                "\n";
     }
 
     public String toCSV() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         String de = dataDevolucao != null ? sdf.format(dataDevolucao) : "";
-        return idEmprestimo + ";" + (dataEmprestimo != null ? sdf.format(dataEmprestimo) : "") + ";" + de
-                + ";" + idUsuario + ";" + idLivro;
+        return idEmprestimo + ";" +
+                (dataEmprestimo != null ? sdf.format(dataEmprestimo) : "") + ";" +
+                de + ";" +
+                (usuario != null ? usuario.getIdUsuario() : "") + ";" +
+                (livro != null ? livro.getIdLivro() : "");
     }
 }
